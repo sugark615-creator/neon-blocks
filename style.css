@@ -425,10 +425,11 @@ body[data-state="modal"]    .touch-controls { visibility: hidden; }
     padding: 12px;
   }
   .board-frame {
-    width: 300px;
-    height: 600px;
-    max-width: none;
-    max-height: none;
+    width: auto;
+    height: 88vh;
+    min-height: 500px;
+    max-height: 1200px;
+    aspect-ratio: 1 / 2;
   }
   #gameBoard {
     width: 100%;

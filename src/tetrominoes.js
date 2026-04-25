@@ -1,6 +1,6 @@
 export const COLS = 10;
 export const ROWS = 20;
-export const BLOCK_SIZE = 30; // 30px per block
+export const BLOCK_SIZE = 40; // 40px per block
 
 // Tetromino colors with neon glow effects
 export const COLORS = [
