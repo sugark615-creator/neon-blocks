@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Neon Blocks</title>
+    <meta name="description" content="Modern browser-based block puzzle with neon glassmorphism design.">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script type="module" crossorigin src="/neon-blocks/assets/index-BqfIg-Zg.js"></script>
+    <link rel="stylesheet" crossorigin href="/neon-blocks/assets/index-BKYpiKcc.css">
+  </head>
+  <body data-state="home">
+    <div id="app">
+
+      <!-- ===== MOBILE: compact stats bar ===== -->
+      <div class="stats-bar">
+        <div class="stat-box">
+          <span class="label">Score</span>
+          <span id="score" class="value">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">Lv</span>
+          <span id="level" class="value">1</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">Lines</span>
+          <span id="lines" class="value">0</span>
+        </div>
+        <div class="stat-box best-box">
+          <span class="label">Best</span>
+          <span id="bestScore" class="value best-value">0</span>
+        </div>
+        <div class="stat-box next-box">
+          <span class="label">Next</span>
+          <canvas id="nextPieceMobile" width="48" height="48"></canvas>
+        </div>
+      </div>
+
+      <!-- ===== DESKTOP: left side panel ===== -->
+      <div class="glass-panel side-panel left-panel">
+        <h2>Stats</h2>
+        <div class="stat-box">
+          <span class="label">Score</span>
+          <span id="score-d" class="value">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">Level</span>
+          <span id="level-d" class="value">1</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">Lines</span>
+          <span id="lines-d" class="value">0</span>
+        </div>
+        <div class="stat-box best-box">
+          <span class="label">Best</span>
+          <span id="bestScore-d" class="value best-value">0</span>
+        </div>
+        <button class="pause-btn neon-btn small-btn">⏸ PAUSE</button>
+      </div>
+
+      <!-- ===== GAME BOARD ===== -->
+      <div class="main-panel">
+        <!-- Floating mobile pause button -->
+        <button class="pause-btn float-pause-btn" aria-label="Pause">⏸</button>
+        
+        <!-- Frame matches canvas 1:2 aspect ratio exactly so no letterbox appears -->
+        <div class="board-frame">
+          <canvas id="gameBoard" width="300" height="600"></canvas>
+
+          <!-- Line clear flying text -->
+          <div id="lineClearText" class="line-clear-text"></div>
+
+          <!-- ===== HOME SCREEN ====== -->
+        <div id="homeScreen" class="overlay">
+          <h1 class="home-title">NEON<br>BLOCKS</h1>
+          <p class="home-best">BEST: <span id="homeBestScore">0</span></p>
+          <div class="menu-list">
+            <button id="homeContinueBtn"   class="menu-btn primary hidden">▶ CONTINUE</button>
+            <button id="homeStartBtn"      class="menu-btn primary">▶ NEW GAME</button>
+            <button id="homeHighScoreBtn"  class="menu-btn">🏆 HIGH SCORE</button>
+            <button id="homeSettingsBtn"   class="menu-btn">⚙ SETTINGS</button>
+            <button id="homeControlsBtn"   class="menu-btn">? CONTROLS</button>
+          </div>
+        </div>
+
+        <!-- ===== PAUSE MENU ===== -->
+        <div id="pauseMenu" class="overlay hidden">
+          <h2>PAUSED</h2>
+          <div class="menu-list">
+            <button id="resumeBtn"        class="menu-btn primary">▶ RESUME</button>
+            <button id="pauseRestartBtn"  class="menu-btn">⟳ RESTART</button>
+            <button id="pauseMuteBtn"     class="menu-btn">🔊 SOUND ON</button>
+            <button id="pauseHomeBtn"     class="menu-btn">🏠 HOME</button>
+          </div>
+        </div>
+
+        <!-- ===== HIGH SCORE MODAL ===== -->
+        <div id="highScoreModal" class="overlay hidden">
+          <h2>HIGH SCORE</h2>
+          <p class="big-score" id="modalBestScore">0</p>
+          <button class="menu-btn primary" data-close="highScoreModal">← BACK</button>
+        </div>
+
+        <!-- ===== SETTINGS MODAL ===== -->
+        <div id="settingsModal" class="overlay hidden">
+          <h2>SETTINGS</h2>
+          <div class="menu-list">
+            <button id="settingsMuteBtn" class="menu-btn">🔊 SOUND ON</button>
+          </div>
+          <button class="menu-btn primary" data-close="settingsModal">← BACK</button>
+        </div>
+
+        <!-- ===== CONTROLS MODAL ===== -->
+        <div id="controlsModal" class="overlay hidden">
+          <h2>CONTROLS</h2>
+          <div class="controls-list">
+            <p><span>↑ / W</span> Rotate</p>
+            <p><span>← →</span> Move</p>
+            <p><span>↓ / S</span> Soft Drop</p>
+            <p><span>Space</span> Hard Drop</p>
+            <p><span>P</span> Pause</p>
+          </div>
+          <button class="menu-btn primary" data-close="controlsModal">← BACK</button>
+        </div>
+
+        <!-- ===== GAME OVER ===== -->
+        <div id="gameOverScreen" class="overlay hidden">
+          <h2>GAME OVER</h2>
+          <p>Score: <strong id="finalScore">0</strong></p>
+          <p id="newBestMsg" class="new-best hidden">🏆 New Best!</p>
+          <div class="menu-list">
+            <button id="restartBtn"        class="menu-btn primary">⟳ RESTART</button>
+            <button id="gameOverHomeBtn"   class="menu-btn">🏠 HOME</button>
+          </div>
+        </div>
+        </div><!-- /.board-frame -->
+      </div>
+
+      <!-- ===== DESKTOP: right side panel ===== -->
+      <div class="glass-panel side-panel right-panel">
+        <h2>Next</h2>
+        <div class="next-piece-container">
+          <canvas id="nextPieceBoard" width="120" height="120"></canvas>
+        </div>
+        <div class="controls-hint">
+          <h3>Controls</h3>
+          <p><span>↑ / W</span> Rotate</p>
+          <p><span>← →</span> Move</p>
+          <p><span>↓ / S</span> Soft Drop</p>
+          <p><span>Space</span> Hard Drop</p>
+          <p><span>P</span> Pause</p>
+        </div>
+      </div>
+
+      <!-- ===== MOBILE: touch controls (bottom row) ===== -->
+      <div class="touch-controls">
+        <button class="touch-btn touch-hard"  aria-label="Hard drop">DROP</button>
+        <button class="touch-btn touch-left"  aria-label="Move left">←</button>
+        <button class="touch-btn touch-rotate" aria-label="Rotate">↻</button>
+        <button class="touch-btn touch-right" aria-label="Move right">→</button>
+        <button class="touch-btn touch-down"  aria-label="Soft drop">↓</button>
+      </div>
+
+    </div>
+  </body>
+</html>
