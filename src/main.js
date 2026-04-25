@@ -205,7 +205,7 @@ function closeAllModals() {
 
 function syncMuteLabels() {
   const muted = isMutedNow();
-  const label = muted ? '🔇 SOUND OFF' : '🔊 SOUND ON';
+  const label = muted ? 'SOUND OFF' : 'SOUND ON';
   setText('pauseMuteBtn', label);
   setText('settingsMuteBtn', label);
 }

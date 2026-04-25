@@ -76,11 +76,11 @@
           <h1 class="home-title">NEON<br>BLOCKS</h1>
           <p class="home-best">BEST: <span id="homeBestScore">0</span></p>
           <div class="menu-list">
-            <button id="homeContinueBtn"   class="menu-btn primary hidden">▶ CONTINUE</button>
-            <button id="homeStartBtn"      class="menu-btn primary">▶ NEW GAME</button>
-            <button id="homeHighScoreBtn"  class="menu-btn">🏆 HIGH SCORE</button>
-            <button id="homeSettingsBtn"   class="menu-btn">⚙ SETTINGS</button>
-            <button id="homeControlsBtn"   class="menu-btn">? CONTROLS</button>
+            <button id="homeContinueBtn"   class="menu-btn primary hidden">CONTINUE</button>
+            <button id="homeStartBtn"      class="menu-btn primary">NEW GAME</button>
+            <button id="homeHighScoreBtn"  class="menu-btn">HIGH SCORE</button>
+            <button id="homeSettingsBtn"   class="menu-btn">SETTINGS</button>
+            <button id="homeControlsBtn"   class="menu-btn">CONTROLS</button>
           </div>
         </div>
 
@@ -88,10 +88,10 @@
         <div id="pauseMenu" class="overlay hidden">
           <h2>PAUSED</h2>
           <div class="menu-list">
-            <button id="resumeBtn"        class="menu-btn primary">▶ RESUME</button>
-            <button id="pauseRestartBtn"  class="menu-btn">⟳ RESTART</button>
-            <button id="pauseMuteBtn"     class="menu-btn">🔊 SOUND ON</button>
-            <button id="pauseHomeBtn"     class="menu-btn">🏠 HOME</button>
+            <button id="resumeBtn"        class="menu-btn primary">RESUME</button>
+            <button id="pauseRestartBtn"  class="menu-btn">RESTART</button>
+            <button id="pauseMuteBtn"     class="menu-btn">SOUND ON</button>
+            <button id="pauseHomeBtn"     class="menu-btn">HOME</button>
           </div>
         </div>
 
@@ -106,7 +106,7 @@
         <div id="settingsModal" class="overlay hidden">
           <h2>SETTINGS</h2>
           <div class="menu-list">
-            <button id="settingsMuteBtn" class="menu-btn">🔊 SOUND ON</button>
+            <button id="settingsMuteBtn" class="menu-btn">SOUND ON</button>
           </div>
           <button class="menu-btn primary" data-close="settingsModal">← BACK</button>
         </div>
@@ -114,24 +114,31 @@
         <!-- ===== CONTROLS MODAL ===== -->
         <div id="controlsModal" class="overlay hidden">
           <h2>CONTROLS</h2>
-          <div class="controls-list">
-            <p><span>↑ / W</span> Rotate</p>
-            <p><span>← →</span> Move</p>
-            <p><span>↓ / S</span> Soft Drop</p>
-            <p><span>Space</span> Hard Drop</p>
-            <p><span>P</span> Pause</p>
+          <div class="controls-list" style="margin-top: 10px;">
+            <p style="background: none; padding: 0; color: #fff; font-weight: bold; margin-bottom: -4px;">タッチ・スワイプ</p>
+            <p><span>画面タップ</span> 回転</p>
+            <p><span>左右スワイプ</span> 左右に移動</p>
+            <p><span>下スワイプ</span> 一気に落とす</p>
+            
+            <p style="background: none; padding: 0; color: #fff; font-weight: bold; margin-top: 10px; margin-bottom: -4px;">キーボード</p>
+            <p><span>↑ / W</span> 回転</p>
+            <p><span>← →</span> 左右に移動</p>
+            <p><span>↓ / S</span> 少し落とす</p>
+            <p><span>Space</span> 一気に落とす</p>
+            <p><span>P</span> 一時停止</p>
           </div>
-          <button class="menu-btn primary" data-close="controlsModal">← BACK</button>
+          <div style="font-size: 0.8rem; text-align: center; margin-top: 15px; color: var(--muted);">※画面下のボタンでも操作可能です</div>
+          <button class="menu-btn primary" data-close="controlsModal" style="margin-top: 20px;">← BACK</button>
         </div>
 
         <!-- ===== GAME OVER ===== -->
         <div id="gameOverScreen" class="overlay hidden">
           <h2>GAME OVER</h2>
           <p>Score: <strong id="finalScore">0</strong></p>
-          <p id="newBestMsg" class="new-best hidden">🏆 New Best!</p>
+          <p id="newBestMsg" class="new-best hidden">New Best!</p>
           <div class="menu-list">
-            <button id="restartBtn"        class="menu-btn primary">⟳ RESTART</button>
-            <button id="gameOverHomeBtn"   class="menu-btn">🏠 HOME</button>
+            <button id="restartBtn"        class="menu-btn primary">RESTART</button>
+            <button id="gameOverHomeBtn"   class="menu-btn">HOME</button>
           </div>
         </div>
         </div><!-- /.board-frame -->
@@ -145,11 +152,11 @@
         </div>
         <div class="controls-hint">
           <h3>Controls</h3>
-          <p><span>↑ / W</span> Rotate</p>
-          <p><span>← →</span> Move</p>
-          <p><span>↓ / S</span> Soft Drop</p>
-          <p><span>Space</span> Hard Drop</p>
-          <p><span>P</span> Pause</p>
+          <p><span>↑/W / ﾀｯﾌﾟ</span> 回転</p>
+          <p><span>← → / ｽﾜｲﾌﾟ</span> 移動</p>
+          <p><span>↓ / S</span> 少し落とす</p>
+          <p><span>Space/下ｽﾜｲﾌﾟ</span> 一気に落とす</p>
+          <p><span>P</span> 一時停止</p>
         </div>
       </div>
 
