@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Neon Tetris</title>
-    <meta name="description" content="Modern browser-based Tetris with neon glassmorphism design.">
+    <title>Neon Blocks</title>
+    <meta name="description" content="Modern browser-based block puzzle with neon glassmorphism design.">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -56,24 +56,28 @@
           <span class="label">Best</span>
           <span id="bestScore-d" class="value best-value">0</span>
         </div>
+        <button class="pause-btn neon-btn small-btn">⏸ PAUSE</button>
       </div>
 
       <!-- ===== GAME BOARD ===== -->
       <div class="main-panel">
-        <!-- Floating pause button (top-left of board) -->
-        <button id="pauseBtn" class="float-pause-btn" aria-label="Pause">⏸</button>
+        <!-- Floating mobile pause button -->
+        <button class="pause-btn float-pause-btn" aria-label="Pause">⏸</button>
+        
+        <!-- Frame matches canvas 1:2 aspect ratio exactly so no letterbox appears -->
+        <div class="board-frame">
+          <canvas id="gameBoard" width="300" height="600"></canvas>
 
-        <canvas id="gameBoard" width="300" height="600"></canvas>
+          <!-- Line clear flying text -->
+          <div id="lineClearText" class="line-clear-text"></div>
 
-        <!-- Line clear flying text -->
-        <div id="lineClearText" class="line-clear-text"></div>
-
-        <!-- ===== HOME SCREEN ===== -->
+          <!-- ===== HOME SCREEN ====== -->
         <div id="homeScreen" class="overlay">
-          <h1 class="home-title">NEON<br>TETRIS</h1>
+          <h1 class="home-title">NEON<br>BLOCKS</h1>
           <p class="home-best">BEST: <span id="homeBestScore">0</span></p>
           <div class="menu-list">
-            <button id="homeStartBtn"      class="menu-btn primary">▶ START</button>
+            <button id="homeContinueBtn"   class="menu-btn primary hidden">▶ CONTINUE</button>
+            <button id="homeStartBtn"      class="menu-btn primary">▶ NEW GAME</button>
             <button id="homeHighScoreBtn"  class="menu-btn">🏆 HIGH SCORE</button>
             <button id="homeSettingsBtn"   class="menu-btn">⚙ SETTINGS</button>
             <button id="homeControlsBtn"   class="menu-btn">? CONTROLS</button>
@@ -130,6 +134,7 @@
             <button id="gameOverHomeBtn"   class="menu-btn">🏠 HOME</button>
           </div>
         </div>
+        </div><!-- /.board-frame -->
       </div>
 
       <!-- ===== DESKTOP: right side panel ===== -->

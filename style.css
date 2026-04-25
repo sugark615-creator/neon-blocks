@@ -23,6 +23,8 @@
 /* ===========================
    Base
    =========================== */
+.hidden { display: none !important; }
+
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
@@ -67,6 +69,11 @@ h2 {
   align-items: stretch;
   gap: 4px;
   flex-shrink: 0;
+  transition: opacity 0.3s;
+}
+body[data-state="home"] .stats-bar {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .stat-box {
@@ -124,53 +131,65 @@ h2 {
   padding: 4px;
 }
 
-#gameBoard {
-  display: block;
+/* Frame is the visible playfield boundary. Forces 1:2 aspect so canvas fits exactly. */
+.board-frame {
+  position: relative;
+  aspect-ratio: 1 / 2;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   background: #000;
   border-radius: 4px;
-  /* Solid bright cyan playfield frame with strong outer glow */
   border: 4px solid var(--accent);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18),  /* crisp inner edge */
-    inset 0 0 28px rgba(0, 0, 0, 0.95),         /* darken inside corners */
-    0 0 18px rgba(6, 182, 212, 0.85),           /* close glow */
-    0 0 36px rgba(6, 182, 212, 0.4);            /* far glow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 0 28px rgba(0, 0, 0, 0.95),
+    0 0 18px rgba(6, 182, 212, 0.85),
+    0 0 36px rgba(6, 182, 212, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#gameBoard {
+  display: block;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   width: 100%;
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
+  height: 100%;
   touch-action: manipulation;
 }
 
-/* ---------- Floating pause button ---------- */
+/* ---------- Pause button (mobile = float in main-panel, desktop = neon-btn in side-panel) ---------- */
 .float-pause-btn {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 5;
-  width: 38px;
-  height: 38px;
+  top: 4px;
+  left: 4px;
+  width: 36px;
+  height: 36px;
   background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(6px);
   border: 1.5px solid var(--accent);
   border-radius: 8px;
   color: var(--accent);
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(6,182,212,.4);
-  -webkit-tap-highlight-color: transparent;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform .1s, background .1s;
+  box-shadow: 0 0 6px rgba(6,182,212,.3);
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
 }
-.float-pause-btn:active { transform: scale(.92); background: var(--accent); color: #000; }
+.float-pause-btn:active { background: var(--accent); color: #000; }
 
-/* Hide pause button when not playing */
-body[data-state="home"]     .float-pause-btn,
-body[data-state="paused"]   .float-pause-btn,
-body[data-state="gameOver"] .float-pause-btn,
-body[data-state="modal"]    .float-pause-btn { display: none; }
+body[data-state="home"]     .pause-btn,
+body[data-state="paused"]   .pause-btn,
+body[data-state="gameOver"] .pause-btn,
+body[data-state="modal"]    .pause-btn { display: none; }
 
 /* Hide touch controls when not playing */
 body[data-state="home"]     .touch-controls,
@@ -193,11 +212,19 @@ body[data-state="modal"]    .touch-controls { visibility: hidden; }
   gap: 12px;
   transition: opacity .25s;
 }
-.overlay.hidden { opacity: 0; pointer-events: none; }
+.overlay.hidden { display: flex !important; opacity: 0; pointer-events: none; }
 .overlay h2 { font-size: 1.6rem; }
 .overlay p  { font-size: .95rem; color: var(--muted); }
 
 /* Home title */
+#homeScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.95), rgba(0, 0, 0, 1));
+  backdrop-filter: blur(20px);
+  border-radius: 0;
+}
 .home-title {
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
@@ -322,7 +349,7 @@ body[data-state="modal"]    .touch-controls { visibility: hidden; }
 .line-clear-text.show {
   animation: lineClearShow .7s ease-out forwards;
 }
-.line-clear-text.tetris {
+.line-clear-text.excellent {
   color: var(--gold);
   text-shadow: 0 0 25px var(--gold), 0 0 60px var(--gold);
   font-size: 2.6rem;
@@ -373,9 +400,9 @@ body[data-state="modal"]    .touch-controls { visibility: hidden; }
 .touch-hard:active { background: var(--red); color: #000; }
 
 /* ===========================
-   DESKTOP LAYOUT (700px+)
+   DESKTOP LAYOUT (700px+ and mouse)
    =========================== */
-@media (min-width: 700px) {
+@media (min-width: 700px) and (pointer: fine) {
   body { overflow: auto; }
 
   .side-panel    { display: flex; }
@@ -397,11 +424,15 @@ body[data-state="modal"]    .touch-controls { visibility: hidden; }
     flex: none;
     padding: 12px;
   }
-  #gameBoard {
-    width: auto;
-    height: auto;
+  .board-frame {
+    width: 300px;
+    height: 600px;
+    max-width: none;
     max-height: none;
-    object-fit: none;
+  }
+  #gameBoard {
+    width: 100%;
+    height: 100%;
   }
 
   .side-panel {
@@ -457,8 +488,5 @@ body[data-state="modal"]    .touch-controls { visibility: hidden; }
   .menu-list   { max-width: 240px; }
   .menu-btn    { font-size: .95rem; padding: 14px 22px; }
   .line-clear-text { font-size: 2.8rem; }
-  .line-clear-text.tetris { font-size: 3.4rem; }
-
-  /* Larger float pause button on desktop */
-  .float-pause-btn { width: 42px; height: 42px; font-size: 1.3rem; }
+  .line-clear-text.excellent { font-size: 3.4rem; }
 }

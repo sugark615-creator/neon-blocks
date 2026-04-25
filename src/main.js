@@ -31,22 +31,23 @@ let time = { start: 0, elapsed: 0, level: 1000 };
 let score = 0;
 let lines = 0;
 let level = 1;
-let highScore = parseInt(localStorage.getItem('tetrisHighScore') || '0', 10);
+let highScore = parseInt(localStorage.getItem('neonBlocksHighScore') || '0', 10);
 let gameState = STATE.HOME;
 let modalReturnState = STATE.HOME; // where to go after closing a modal
 
-// Line clear animation state
+// Line clear & drop flash animation states
 let clearAnim = null; // { rows, count, startTime, removed }
+let dropFlash = null; // { blocks, startTime, color }
 const CLEAR_FLASH_MS = 250;
 const CLEAR_TOTAL_MS = 700;
 
 // Saved-game persistence (recovers from mobile-Safari background page reload)
-const SAVED_GAME_KEY = 'tetrisSavedGame';
+const SAVED_GAME_KEY = 'neonBlocksSavedGame';
 const SAVED_GAME_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 // Points: 0, 1, 2, 3, 4 lines
 const POINTS = [0, 100, 300, 500, 800];
-const LINE_LABELS = ['', '1 LINE', '2 LINES', '3 LINES', 'TETRIS!'];
+const LINE_LABELS = ['', '1 LINE', '2 LINES', '3 LINES', 'EXCELLENT!'];
 
 // ===== Initialization =====
 function init() {
@@ -59,22 +60,21 @@ function init() {
   syncMuteLabels();
   wireMenus();
   setupTouchControls();
+  setupSwipeControls();
 
-  // If the page was reloaded by the mobile browser while a game was paused,
-  // restore the board state and re-show the pause menu.
-  if (loadSavedGame()) {
-    updateScore();
-    drawNext();
-    draw();
-    $('homeScreen').classList.add('hidden');
-    $('pauseMenu').classList.remove('hidden');
-    setState(STATE.PAUSED);
-    return;
-  }
+  // Always show home on page load. If a recent paused game is in storage,
+  // expose a CONTINUE button so the user explicitly decides whether to resume.
+  refreshContinueButton();
 
   draw();
   drawNext();
   setState(STATE.HOME);
+}
+
+function refreshContinueButton() {
+  const btn = $('homeContinueBtn');
+  if (!btn) return;
+  btn.classList.toggle('hidden', !peekSavedGame());
 }
 
 // ===== Saved-game persistence =====
@@ -94,6 +94,23 @@ function saveGameState() {
 
 function clearSavedGame() {
   try { localStorage.removeItem(SAVED_GAME_KEY); } catch (_) {}
+}
+
+function peekSavedGame() {
+  let raw;
+  try { raw = localStorage.getItem(SAVED_GAME_KEY); } catch (_) { return false; }
+  if (!raw) return false;
+  try {
+    const s = JSON.parse(raw);
+    if (!s || !s.savedAt || Date.now() - s.savedAt > SAVED_GAME_TTL_MS) {
+      clearSavedGame();
+      return false;
+    }
+    return true;
+  } catch (_) {
+    clearSavedGame();
+    return false;
+  }
 }
 
 function loadSavedGame() {
@@ -128,15 +145,18 @@ function setState(next) {
 // ===== Menu wiring =====
 function wireMenus() {
   // Home menu
+  $('homeContinueBtn').addEventListener('click', continueSavedGame);
   $('homeStartBtn').addEventListener('click', () => { closeAllModals(); startGame(); });
   $('homeHighScoreBtn').addEventListener('click', () => openModal('highScoreModal'));
   $('homeSettingsBtn').addEventListener('click', () => openModal('settingsModal'));
   $('homeControlsBtn').addEventListener('click', () => openModal('controlsModal'));
 
-  // Pause button (floating)
-  $('pauseBtn').addEventListener('click', (e) => {
-    e.currentTarget.blur();
-    if (gameState === STATE.PLAYING) pauseGame();
+  // Pause button (one in mobile stats-bar, one in desktop side panel — same handler)
+  document.querySelectorAll('.pause-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.currentTarget.blur();
+      if (gameState === STATE.PLAYING) pauseGame();
+    });
   });
 
   // Pause menu
@@ -213,13 +233,29 @@ function startGame() {
 function returnToHome() {
   cancelAnimationFrame(requestId);
   stopMusic();
-  clearSavedGame();
   clearAnim = null;
   hideLineClearText();
   closeAllModals();
   $('homeScreen').classList.remove('hidden');
   setText('homeBestScore', highScore);
+  refreshContinueButton();
   setState(STATE.HOME);
+}
+
+// Restore a saved paused game and jump straight to the pause menu so the
+// user can hit RESUME to start playing.
+function continueSavedGame() {
+  if (!loadSavedGame()) {
+    refreshContinueButton();
+    return;
+  }
+  closeAllModals();
+  updateScore();
+  drawNext();
+  draw();
+  syncMuteLabels();
+  $('pauseMenu').classList.remove('hidden');
+  setState(STATE.PAUSED);
 }
 
 function pauseGame() {
@@ -250,7 +286,7 @@ function gameOver() {
 
   if (score > highScore) {
     highScore = score;
-    localStorage.setItem('tetrisHighScore', highScore);
+    localStorage.setItem('neonBlocksHighScore', highScore);
     setText('bestScore', highScore);
     setText('bestScore-d', highScore);
     setText('homeBestScore', highScore);
@@ -324,6 +360,8 @@ function draw() {
       }
     }
   }
+  
+  drawDropFlash();
 }
 
 function drawClearingFrame(progress) {
@@ -346,6 +384,43 @@ function drawClearingFrame(progress) {
   ctx.shadowBlur = 25 * intensity;
   for (const row of clearAnim.rows) {
     ctx.fillRect(0, row * BLOCK_SIZE, COLS * BLOCK_SIZE, BLOCK_SIZE);
+  }
+  ctx.restore();
+  
+  drawDropFlash();
+}
+
+function drawDropFlash() {
+  if (!dropFlash) return;
+  const elapsed = performance.now() - dropFlash.startTime;
+  if (elapsed >= 250) {
+    dropFlash = null;
+    return;
+  }
+  const progress = 1 - (elapsed / 250); // linear fade
+  ctx.save();
+  
+  // High intensity white center with cyan neon glow
+  ctx.fillStyle = `rgba(255, 255, 255, ${progress})`;
+  ctx.shadowColor = '#0ff';
+  ctx.shadowBlur = 30 * progress;
+  
+  for (const pt of dropFlash.impacts) {
+    if (pt.y >= 0) {
+      // The contact surface is at the bottom edge of the block
+      const surfaceY = (pt.y + 1) * BLOCK_SIZE;
+      const centerX = (pt.x + 0.5) * BLOCK_SIZE;
+      
+      // Expanding horizontal shockwave
+      const width = BLOCK_SIZE * 1.5 + (1 - progress) * BLOCK_SIZE * 2;
+      const height = 6 * progress;
+      
+      ctx.fillRect(centerX - width / 2, surfaceY - height / 2, width, height);
+      
+      // Draw a second pass for a brighter core
+      ctx.shadowBlur = 10 * progress;
+      ctx.fillRect(centerX - (width * 0.5) / 2, surfaceY - 2 * progress, width * 0.5, 4 * progress);
+    }
   }
   ctx.restore();
 }
@@ -435,7 +510,7 @@ function advanceClearAnim(now) {
 function showLineClearText(count) {
   const el = $('lineClearText');
   el.textContent = LINE_LABELS[count] || `${count} LINES`;
-  el.classList.toggle('tetris', count >= 4);
+  el.classList.toggle('excellent', count >= 4);
   el.classList.remove('show');
   void el.offsetWidth; // restart animation
   el.classList.add('show');
@@ -529,6 +604,36 @@ function actionSoftDrop() {
 function actionHardDrop() {
   if (!canAct()) return;
   while (board.valid({ ...board.piece, y: board.piece.y + 1 })) board.piece.y += 1;
+  
+  dropFlash = {
+    impacts: [],
+    startTime: performance.now(),
+  };
+  
+  let absoluteBottomY = -1;
+  const tempImpacts = [];
+
+  // Find the bottom-most block in each column
+  for (let x = 0; x < board.piece.shape[0].length; x++) {
+    let bottomY = -1;
+    for (let y = board.piece.shape.length - 1; y >= 0; y--) {
+      if (board.piece.shape[y][x] > 0) {
+        bottomY = y;
+        break;
+      }
+    }
+    if (bottomY !== -1) {
+      const boardY = board.piece.y + bottomY;
+      tempImpacts.push({ x: board.piece.x + x, y: boardY });
+      if (boardY > absoluteBottomY) {
+        absoluteBottomY = boardY;
+      }
+    }
+  }
+
+  // Only keep the impacts that are at the absolute lowest level of the piece
+  dropFlash.impacts = tempImpacts.filter(pt => pt.y === absoluteBottomY);
+
   if (!drop()) { gameOver(); return; }
   draw();
 }
@@ -592,6 +697,78 @@ function setupTouchControls() {
   bindTouchHold('.touch-down', actionSoftDrop);
   bindTouchTap('.touch-rotate', actionRotate);
   bindTouchTap('.touch-hard', actionHardDrop);
+}
+
+function setupSwipeControls() {
+  const panel = document;
+  
+  let startX = 0;
+  let startY = 0;
+  let lastX = 0;
+  let lastY = 0;
+  let hasMoved = false;
+  const SWIPE_THRESHOLD = 30; // pixels before triggering a move
+  const TAP_THRESHOLD = 10;   // max pixels allowed to be considered a tap
+
+  panel.addEventListener('touchstart', (e) => {
+    if (gameState !== STATE.PLAYING) return;
+    if (e.target.closest('button')) return; // Ignore touches on buttons
+    // Don't prevent default here if we want to allow scrolling elsewhere, 
+    // but typically for game boards we want to stop scroll.
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    lastX = startX;
+    lastY = startY;
+    hasMoved = false;
+  }, { passive: false });
+
+  panel.addEventListener('touchmove', (e) => {
+    if (gameState !== STATE.PLAYING) return;
+    if (e.target.closest('button')) return;
+
+    e.preventDefault(); // Stop page scrolling while swiping on the game board
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    
+    // Check total movement to disqualify as a tap
+    if (Math.abs(currentX - startX) > TAP_THRESHOLD || Math.abs(currentY - startY) > TAP_THRESHOLD) {
+      hasMoved = true;
+    }
+
+    const deltaX = currentX - lastX;
+    const deltaY = currentY - lastY;
+
+    // Check primary swipe direction to avoid diagonal cross-talk
+    const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
+    const isVerticalDrop = deltaY > Math.abs(deltaX) * 2.5; // Strict downward swipe
+
+    if (isHorizontal && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+      if (deltaX > 0) {
+        actionRight();
+      } else {
+        actionLeft();
+      }
+      lastX = currentX; // Reset origin for continuous swipe
+      lastY = currentY; // Update Y too so it doesn't build up diagonal drop
+    }
+
+    if (isVerticalDrop && deltaY > SWIPE_THRESHOLD) {
+      actionHardDrop();
+      lastY = Infinity; // Prevent multiple hard drops
+    }
+  }, { passive: false });
+
+  panel.addEventListener('touchend', (e) => {
+    if (gameState !== STATE.PLAYING) return;
+    if (e.target.closest('button')) return;
+
+    if (!hasMoved) {
+      // It was a tap!
+      e.preventDefault();
+      actionRotate();
+    }
+  }, { passive: false });
 }
 
 // Auto-pause when the tab is hidden (user switched apps / locked phone / changed tab).

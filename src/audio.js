@@ -24,7 +24,7 @@ const NOISE_BUFFER = (() => {
 })();
 
 let isPlaying = false;
-let isMuted = localStorage.getItem('tetrisMuted') === 'true';
+let isMuted = localStorage.getItem('neonBlocksMuted') === 'true';
 let timerID;
 
 const tempo = 150;
@@ -254,10 +254,21 @@ export function stopMusic() {
 
 export function toggleMute() {
   isMuted = !isMuted;
-  localStorage.setItem('tetrisMuted', String(isMuted));
+  localStorage.setItem('neonBlocksMuted', String(isMuted));
   return isMuted;
 }
 
 export function isMutedNow() {
   return isMuted;
 }
+
+// Unlock Web Audio API on first interaction (required by browsers, especially Safari)
+const unlockAudio = () => {
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  document.removeEventListener('click', unlockAudio);
+  document.removeEventListener('touchstart', unlockAudio);
+};
+document.addEventListener('click', unlockAudio, { once: true });
+document.addEventListener('touchstart', unlockAudio, { once: true });
